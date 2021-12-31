@@ -35,17 +35,16 @@ main(int argc, char *argv[])
   struct psinfo psinfo;
   int i;
 
-  printf("%s test: start\n", argv[0]);
   if(pinfo(&psinfo) < 0) {
     fprintf(2, "%s: pinfo failed...\n", argv[0]);
     exit(1);
   }
 
-  printf("PID \t PRIORITY \t STATE \t USED PAGES \t NAME\n");
+  printf("PID \t STATE \t USED PAGES \t NAME\n");
   for(i = 0; i < MAX_PS_PROC; i++) {
     if(psinfo.active[i]) {
-      printf("%d \t %d \t %s \t %d \t %s\n",
-             psinfo.pid[i], psinfo.prio[i],
+      printf("%d \t %s \t %d \t %s\n",
+             psinfo.pid[i],
              ststr(psinfo.states[i]), psinfo.num_used_pages[i],
              psinfo.name[i]);
     }
