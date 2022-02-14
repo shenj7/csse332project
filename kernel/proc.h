@@ -82,6 +82,10 @@ struct trapframe {
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+struct list_head {
+  struct list_head *next, *prev;
+};
+
 // Per-process state
 struct proc {
   struct spinlock lock;
