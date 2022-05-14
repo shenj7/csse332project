@@ -2,7 +2,7 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
-char byte = 'a';
+char byte[1];
 
 int cpip[2]; // pipe from child to parent
 int ppip[2]; // pipe from parent to child
@@ -10,11 +10,12 @@ int ppip[2]; // pipe from parent to child
 int
 main(int argc, char *argv[])
 {
+    byte[0] = 'a';
     if (pipe(cpip) == -1) {
-        perror("Failed to create child pipe");
+        printf("Failed to create child pipe");
     }
     if (pipe(ppip) == -1) {
-        perror("Failed to create parent pipe");
+        printf("Failed to create parent pipe");
     }
     int pid = fork();
     if (pid == 0) {
