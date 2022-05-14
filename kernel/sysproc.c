@@ -103,6 +103,8 @@ sys_trace(void)
   return 0;
 }
 
-uint64 pinfo(void) {
+uint64
+pinfo(void)
+{
   return -1;
 }
