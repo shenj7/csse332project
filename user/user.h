@@ -24,6 +24,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int trace(int);
+int pinfo(int);
 
 // ulib.c
 int stat(const char*, struct stat*);
