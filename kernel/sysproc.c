@@ -131,8 +131,7 @@ sys_pinfo(void)
       copyout(currproc->pagetable, addr + 256 + ps_proc_num*4, (char *)processinfo+ 256 + ps_proc_num*4, 4);
       processinfo->states[ps_proc_num] = newproc->state;
       copyout(currproc->pagetable, addr + 256*2 +  ps_proc_num*4, (char *)processinfo+ 256*2 +  ps_proc_num*4, 4);
-      // processinfo->num_used_pages[ps_proc_num] = countmapped(newproc->pagetable);
-      processinfo->num_used_pages[ps_proc_num] = 0;
+      processinfo->num_used_pages[ps_proc_num] = countmapped(newproc->pagetable);
       copyout(currproc->pagetable, addr + 256*3 + ps_proc_num*4, (char *) processinfo+256*3 + ps_proc_num*4, 4);
       strncpy(processinfo->name[ps_proc_num], newproc->name, 16);
       copyout(currproc->pagetable, addr+256*4+ps_proc_num*16, (char *)processinfo+256*4+ps_proc_num*16, 16);
