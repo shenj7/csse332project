@@ -440,7 +440,7 @@ int countmapped(pagetable_t pagetable) {
     if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
       // this PTE points to a lower-level page table.
       uint64 child = PTE2PA(pte);
-      countmapped((pagetable_t)child);
+      count = count + countmapped((pagetable_t)child);
     } else if(pte & PTE_V){
       count++;
     }
