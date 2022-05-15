@@ -110,34 +110,72 @@ sys_trace(void)
   return 0;
 }
 
+// uint64
+// sys_pinfo(void)
+// {
+//   uint64 addr;
+//   if(argaddr(0, &addr) < 0)
+//     return -1;
+//   struct proc *kernelproc;
+//   struct proc *userproc = myproc();
+//   struct psinfo *processinfo = kalloc();
+//   int ps_proc_num = 0;
+//   for(kernelproc = proc; proc < &proc[NPROC]; kernelproc++) {
+//     if(ps_proc_num > MAX_PS_PROC)
+//       exit(1);
+//     acquire(&kernelproc->lock);
+//     if(kernelproc->state != UNUSED){
+//       processinfo->active[ps_proc_num] = 1;
+//       copyout(userproc->pagetable, addr + ps_proc_num*4, (char *)processinfo+ps_proc_num*4, 4);
+//       processinfo->pid[ps_proc_num] = kernelproc->pid;
+//       copyout(userproc->pagetable, addr + 256 + ps_proc_num*4, (char *)processinfo+ 256 + ps_proc_num*4, 4);
+//       processinfo->states[ps_proc_num] = kernelproc->state;
+//       copyout(userproc->pagetable, addr + 256*2 +  ps_proc_num*4, (char *)processinfo+ 256*2 +  ps_proc_num*4, 4);
+//       processinfo->num_used_pages[ps_proc_num] = countmapped(kernelproc->pagetable);
+//       copyout(userproc->pagetable, addr + 256*3 + ps_proc_num*4, (char *) processinfo+256*3 + ps_proc_num*4, 4);
+//       strncpy(processinfo->name[ps_proc_num], kernelproc->name, 16);
+//       copyout(userproc->pagetable, addr+256*4+ps_proc_num*16, (char *)processinfo+256*4+ps_proc_num*16, 16);
+//     }
+//     release(&proc->lock);
+//     ps_proc_num++;
+//   }
+//   return -1;
+// }
+
 uint64
-sys_pinfo(void)
-{
+sys_pinfo(void) {
   uint64 addr;
   if(argaddr(0, &addr) < 0)
     return -1;
-  struct proc *kernelproc;
-  struct proc *userproc = myproc();
-  struct psinfo *processinfo = kalloc();
+  struct proc *p;
+  struct proc *p2 = myproc();
+  struct psinfo *psi = kalloc();
   int ps_proc_num = 0;
-  for(kernelproc = proc; proc < &proc[NPROC]; kernelproc++) {
-    if(ps_proc_num > MAX_PS_PROC)
+  for(p = proc; p < &proc[NPROC]; p++) {
+    if(ps_proc_num > 64) //MAX_PS_PROC
       exit(1);
-    acquire(&kernelproc->lock);
-    if(kernelproc->state != UNUSED){
-      processinfo->active[ps_proc_num] = 1;
-      copyout(userproc->pagetable, addr + ps_proc_num*4, (char *)processinfo+ps_proc_num*4, 4);
-      processinfo->pid[ps_proc_num] = kernelproc->pid;
-      copyout(userproc->pagetable, addr + 256 + ps_proc_num*4, (char *)processinfo+ 256 + ps_proc_num*4, 4);
-      processinfo->states[ps_proc_num] = kernelproc->state;
-      copyout(userproc->pagetable, addr + 256*2 +  ps_proc_num*4, (char *)processinfo+ 256*2 +  ps_proc_num*4, 4);
-      processinfo->num_used_pages[ps_proc_num] = 0;//countmapped(kernelproc->pagetable);
-      copyout(userproc->pagetable, addr + 256*3 + ps_proc_num*4, (char *) processinfo+256*3 + ps_proc_num*4, 4);
-      strncpy(processinfo->name[ps_proc_num], kernelproc->name, 16);
-      copyout(userproc->pagetable, addr+256*4+ps_proc_num*16, (char *)processinfo+256*4+ps_proc_num*16, 16);
+    acquire(&p->lock);
+    if(p->state != UNUSED){
+      psi->active[ps_proc_num] = 1;
+      copyout(p2->pagetable, addr + ps_proc_num*4, (char *)psi+ps_proc_num*4, 4);
+
+      psi->pid[ps_proc_num] = p->pid;
+      copyout(p2->pagetable, addr + 256 + ps_proc_num*4, (char *)psi+ 256 + ps_proc_num*4, 4);
+
+      psi->states[ps_proc_num] = p->state;
+      copyout(p2->pagetable, addr + 512 +  ps_proc_num*4, (char *)psi+ 512 +  ps_proc_num*4, 4);
+
+      psi->num_used_pages[ps_proc_num] = countmapped(p->pagetable);
+      copyout(p2->pagetable, addr + 768 + ps_proc_num*4, (char *) psi+768 + ps_proc_num*4, 4);
+
+      strncpy(psi->name[ps_proc_num], p->name, 16);
+      copyout(p2->pagetable, addr+1024+ps_proc_num*16, (char *)psi+1024+ps_proc_num*16, 16);
     }
-    release(&proc->lock);
+    release(&p->lock);
     ps_proc_num++;
   }
-  return -1;
+
+  //copyout(p2->pagetable, addr, (char *)&psi, sizeof(struct psinfo));
+  kfree(psi);
+  return 0;
 }
