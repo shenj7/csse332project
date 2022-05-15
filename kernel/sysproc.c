@@ -116,25 +116,25 @@ sys_pinfo(void)
   uint64 addr;
   if(argaddr(0, &addr) < 0)
     return -1;
-  struct proc *newproc;
-  struct proc *currproc = myproc();
+  struct proc *kernelproc;
+  struct proc *userproc = myproc();
   struct psinfo *processinfo = kalloc();
   int ps_proc_num = 0;
-  for(newproc = proc; proc < &proc[NPROC]; newproc++) {
+  for(kernelproc = proc; proc < &proc[NPROC]; kernelproc++) {
     if(ps_proc_num > MAX_PS_PROC)
       exit(1);
-    acquire(&newproc->lock);
-    if(newproc->state != UNUSED){
+    acquire(&kernelproc->lock);
+    if(kernelproc->state != UNUSED){
       processinfo->active[ps_proc_num] = 1;
-      copyout(currproc->pagetable, addr + ps_proc_num*4, (char *)processinfo+ps_proc_num*4, 4);
-      processinfo->pid[ps_proc_num] = newproc->pid;
-      copyout(currproc->pagetable, addr + 256 + ps_proc_num*4, (char *)processinfo+ 256 + ps_proc_num*4, 4);
-      processinfo->states[ps_proc_num] = newproc->state;
-      copyout(currproc->pagetable, addr + 256*2 +  ps_proc_num*4, (char *)processinfo+ 256*2 +  ps_proc_num*4, 4);
-      processinfo->num_used_pages[ps_proc_num] = countmapped(newproc->pagetable);
-      copyout(currproc->pagetable, addr + 256*3 + ps_proc_num*4, (char *) processinfo+256*3 + ps_proc_num*4, 4);
-      strncpy(processinfo->name[ps_proc_num], newproc->name, 16);
-      copyout(currproc->pagetable, addr+256*4+ps_proc_num*16, (char *)processinfo+256*4+ps_proc_num*16, 16);
+      copyout(userproc->pagetable, addr + ps_proc_num*4, (char *)processinfo+ps_proc_num*4, 4);
+      processinfo->pid[ps_proc_num] = kernelproc->pid;
+      copyout(userproc->pagetable, addr + 256 + ps_proc_num*4, (char *)processinfo+ 256 + ps_proc_num*4, 4);
+      processinfo->states[ps_proc_num] = kernelproc->state;
+      copyout(userproc->pagetable, addr + 256*2 +  ps_proc_num*4, (char *)processinfo+ 256*2 +  ps_proc_num*4, 4);
+      processinfo->num_used_pages[ps_proc_num] = countmapped(kernelproc->pagetable);
+      copyout(userproc->pagetable, addr + 256*3 + ps_proc_num*4, (char *) processinfo+256*3 + ps_proc_num*4, 4);
+      strncpy(processinfo->name[ps_proc_num], kernelproc->name, 16);
+      copyout(userproc->pagetable, addr+256*4+ps_proc_num*16, (char *)processinfo+256*4+ps_proc_num*16, 16);
     }
     release(&proc->lock);
     ps_proc_num++;
