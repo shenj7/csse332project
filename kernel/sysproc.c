@@ -99,7 +99,11 @@ sys_uptime(void)
 uint64
 sys_trace(void)
 {
-	/* your code goes here */
+  struct proc* currproc = myproc();
+  int arg;
+  if(argint(0, &arg) < 0)
+    return -1;
+  currproc->trace_mask = arg;
   return 0;
 }
 

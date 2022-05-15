@@ -136,6 +136,10 @@ syscall(void)
   struct proc *p = myproc();
 
   num = p->trapframe->a7;
+  if (p->trace_mask == num) {
+        printf("%d: syscall %s -> %d\n",
+            p->pid, p->name, p-> xstate);
+  }
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     p->trapframe->a0 = syscalls[num]();
   } else {
