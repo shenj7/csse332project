@@ -6,6 +6,9 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "ps.h"
+
+extern struct proc proc[NPROC];
 
 uint64
 sys_exit(void)
@@ -108,7 +111,34 @@ sys_trace(void)
 }
 
 uint64
-pinfo(void)
+sys_pinfo(void)
 {
+  uint64 addr;
+  if(argaddr(0, &addr) < 0)
+    return -1;
+  struct proc *newproc;
+  struct proc *currproc = myproc();
+  struct psinfo *processinfo = kalloc();
+  int ps_proc_num = 0;
+  for(newproc = proc; proc < &proc[NPROC]; newproc++) {
+    if(ps_proc_num > MAX_PS_PROC)
+      exit(1);
+    acquire(&newproc->lock);
+    if(newproc->state != UNUSED){
+      processinfo->active[ps_proc_num] = 1;
+      copyout(currproc->pagetable, addr + ps_proc_num*4, (char *)processinfo+ps_proc_num*4, 4);
+      processinfo->pid[ps_proc_num] = newproc->pid;
+      copyout(currproc->pagetable, addr + 256 + ps_proc_num*4, (char *)processinfo+ 256 + ps_proc_num*4, 4);
+      processinfo->states[ps_proc_num] = newproc->state;
+      copyout(currproc->pagetable, addr + 256*2 +  ps_proc_num*4, (char *)processinfo+ 256*2 +  ps_proc_num*4, 4);
+      // processinfo->num_used_pages[ps_proc_num] = countmapped(newproc->pagetable);
+      processinfo->num_used_pages[ps_proc_num] = 0;
+      copyout(currproc->pagetable, addr + 256*3 + ps_proc_num*4, (char *) processinfo+256*3 + ps_proc_num*4, 4);
+      strncpy(processinfo->name[ps_proc_num], newproc->name, 16);
+      copyout(currproc->pagetable, addr+256*4+ps_proc_num*16, (char *)processinfo+256*4+ps_proc_num*16, 16);
+    }
+    release(&proc->lock);
+    ps_proc_num++;
+  }
   return -1;
 }
